@@ -1,0 +1,96 @@
+{% extends "layout.html" %}
+{% block body %}
+<div id="map"></div>
+  <form action="{{ url_for('add_entry') }}" method=post class=add-entry>
+    <dl>
+      <dt>Title:
+      <dd><input type=text size=20 name=title class="form-control">
+      <dt>Text:
+      <dd><textarea name=text rows=5 cols=20 class="form-control"></textarea>
+      <dd><input type=submit value=Share class="btn btn-default">
+      <dt>longtitude:
+        <dd><input type=text size=20 name=lat class="form-control" id="lat">
+      <dt>latitude:
+        <dd><input type=text size=20 name=lng class="form-control" id="lng">
+      <!-- <ul>
+        <li>lat: <span ></span></li>
+        <li>lng: <span ></span></li>
+      </ul> -->
+    </dl>
+  </form>
+
+
+  <ul class=entries>
+  {% for entry in entries %}
+    <li><h2>{{ entry.title }}</h2>{{ entry.text|safe }}</h2>
+      <!-- <br>{{ entry.lat|safe }}</h2>{{ entry.lng|safe }} -->
+  {% else %}
+    <li><em>Unbelievable.  No entries here so far</em>
+  {% endfor %}
+  </ul>
+
+  <script>
+  var marker = [];
+
+    function initMap() {
+
+      // マップの初期化
+      var map = new google.maps.Map(document.getElementById('map'), {
+        zoom: 13,
+        center: {lat: 35.566303, lng: 139.403673}
+      });
+
+      // クリックイベントを追加
+      map.addListener('click', function(e) {
+        getClickLatLng(e.latLng, map);
+      });
+
+      for (var i = 0; i < markerData.length; i++) {
+        markerLatLng = new google.maps.LatLng({lat: markerData[i]['lat'], lng: markerData[i]['lng']}); // 緯度経度のデータ作成
+        marker[i] = new google.maps.Marker({ // マーカーの追加
+         position: markerLatLng, // マーカーを立てる位置を指定
+            map: map // マーカーを立てる地図を指定
+       });
+
+     infoWindow[i] = new google.maps.InfoWindow({ // 吹き出しの追加
+         content: 'title:' + markerData[i]['title'] +'<br>' + 'text:' + markerData[i]['text'] // 吹き出しに表示する内容
+       });
+       infoWindow[i].open(map, marker[i]);
+
+     markerEvent(i); // マーカーにクリックイベントを追加
+
+     // マーカーにクリックイベントを追加
+      function markerEvent(i) {
+          marker[i].addListener('click', function() { // マーカーをクリックしたとき
+            // infoWindow[i].open(map, marker[i]); // 吹き出しの表示
+        });
+       }
+
+
+  }
+
+
+    }
+  var markerData = [
+  {% for entry in entries %}
+  {
+       title: '{{ entry.title }}',
+       text:'{{ entry.text|safe }}',
+       lat: {{ entry.lat|safe }},
+       lng: {{ entry.lng|safe }}
+  },
+  {% endfor %}
+  ];
+  var infoWindow = [];
+    function getClickLatLng(lat_lng, map) {
+
+      // 座標を表示
+      document.getElementById('lat').value = lat_lng.lat();
+      document.getElementById('lng').value = lat_lng.lng();
+
+
+
+    }
+  </script>
+  <script src="https://maps.googleapis.com/maps/api/js?signed_in=true&callback=initMap" async defer></script>
+{% endblock %}
